@@ -1,10 +1,33 @@
-from flask import Blueprint
+"""
+This is property of ENIGMATICS INC.
 
-version_one = Blueprint('version_one', __name__, url_prefix='/v1')
+VERSION::1
+@author::sandy
+"""
+import os
+import sys
+from flask import Blueprint
+sys.append()
+
+version_one = Blueprint('version_one', __name__)
+
+"""
+TOKEN STATUS:
+100 : `OK`
+200 : `EXPIRED`
+"""
 
 @version_one.route('/', methods=('GET'))
 def default_route():
     return
+
+@version_one.route('/ping', methods=('GET'))
+def api_ping():
+    pass
+
+@version_one.route('/token', methods=('GET'))
+def get_token():
+    pass
 
 @version_one.route('/files', methods=('POST'))
 def store_files():
