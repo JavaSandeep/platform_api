@@ -18,7 +18,11 @@ import json
 from flask import Blueprint
 from flask import request
 from flask_limiter import Limiter
-sys.append(os.path.join(os.environ('PLATFORM_HOME'), "utils", "apiutils"))
+from flask_jwt_extended import (
+    JWTManager
+)
+
+sys.path.append(os.path.join(os.environ('PLATFORM_HOME'), "utils", "apiutils"))
 from apiutils import APIUtils
 
 def get_rate_limits():
@@ -27,7 +31,7 @@ def get_rate_limits():
         with open(config_file_path) as f:
             config = json.load(f)
     except Exception as ex:
-        print("Could not get configurations. {0}".str(ex))
+        print("Could not get configurations. {0}".format(str(ex)))
         sys.exit(-1)
 
     return config.get('api').get('rate-limits')
@@ -38,9 +42,12 @@ def get_user_key():
 version_one = Blueprint('version_one', __name__)
 one_limiter = Limiter(
     key_func = get_user_key,
-    RATELIMIT_STRATEGY = 'fixed-window-elastic-expiry',
+    strategy= 'fixed-window-elastic-expiry',
     default_limits=["500 per 1 day"]
 )
+jwt_manager = JWTManager()
+apiutils = APIUtils()
+
 rate_limits = get_rate_limits()
 
 """
@@ -51,7 +58,7 @@ TOKEN STATUS:
 
 
 @version_one.route('/', methods=('GET'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 @one_limiter.limit()
 def default_route():
     __msg = str({
@@ -62,7 +69,7 @@ def default_route():
 
 
 @version_one.route('/ping', methods=('GET'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 @one_limiter.limit()
 def api_ping():
     __msg = str({
@@ -73,7 +80,7 @@ def api_ping():
 
 
 @version_one.route('/token', methods=('GET'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 def get_token():
     __msg, __status = APIUtils.generate_token(
         get_user_key()
@@ -82,30 +89,30 @@ def get_token():
 
 
 @version_one.route('/files', methods=('POST'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 @one_limiter.limit()
-@APIUtils.validate_size
+@apiutils.validate_size
 def put_files():
     pass
 
 
 @version_one.route('/status', methods=('POST'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 @one_limiter.limit(rate_limits['data-limit'])
-@APIUtils.validate_size
+@apiutils.validate_size
 def put_status():
     pass
 
 
 @version_one.route('/releases', methods=('GET'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 @one_limiter.limit()
 def get_releases():
     pass
 
 
 @version_one.route('/download/filename', methods=('GET'))
-@APIUtils.authenticate()
+@apiutils.authenticate()
 @one_limiter.limit(rate_limits['download-limit'])
 def get_file():
     pass
