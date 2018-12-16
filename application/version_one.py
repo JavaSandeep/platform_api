@@ -29,9 +29,8 @@ def get_rate_limits():
     except Exception as ex:
         print("Could not get configurations. {0}".str(ex))
         sys.exit(-1)
-        
-    return config.get('api').get('rate-limits')
 
+    return config.get('api').get('rate-limits')
 
 def get_user_key():
     return request.headers.get('user-key')
@@ -50,22 +49,37 @@ TOKEN STATUS:
 200 : `EXPIRED`
 """
 
+
 @version_one.route('/', methods=('GET'))
 @APIUtils.authenticate()
 @one_limiter.limit()
 def default_route():
-    return
+    __msg = str({
+        "status": "success",
+        "message": "API Up and Running"
+    })
+    return __msg, 200
+
 
 @version_one.route('/ping', methods=('GET'))
 @APIUtils.authenticate()
 @one_limiter.limit()
 def api_ping():
-    pass
+    __msg = str({
+        "status": "success",
+        "message": "API Up and Running"
+    })
+    return __msg, 200
+
 
 @version_one.route('/token', methods=('GET'))
 @APIUtils.authenticate()
 def get_token():
-    pass
+    __msg, __status = APIUtils.generate_token(
+        get_user_key()
+    )
+    return __msg, __status
+
 
 @version_one.route('/files', methods=('POST'))
 @APIUtils.authenticate()
@@ -74,6 +88,7 @@ def get_token():
 def put_files():
     pass
 
+
 @version_one.route('/status', methods=('POST'))
 @APIUtils.authenticate()
 @one_limiter.limit(rate_limits['data-limit'])
@@ -81,11 +96,13 @@ def put_files():
 def put_status():
     pass
 
+
 @version_one.route('/releases', methods=('GET'))
 @APIUtils.authenticate()
 @one_limiter.limit()
 def get_releases():
     pass
+
 
 @version_one.route('/download/filename', methods=('GET'))
 @APIUtils.authenticate()

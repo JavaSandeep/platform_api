@@ -1,3 +1,8 @@
+import os
+import sys
+import json
+import jwt
+
 from flask import request
 from authenticator import Authenticator
 
@@ -43,7 +48,19 @@ class APIUtils:
             return fn()
         return wrapper
     
-    def validate_req_size():
+    @staticmethod
+    def generate_token(user_key):
+        ok = Authenticator().validate_user_key(user_key)
+        if not ok:
+            __msg = str({
+                "status": "failed",
+                "message": "UNAUTHORIZED USER"
+            })
+            __status = 401
+            return __msg, __status
+        return None, None
+
+    def validate_req_size(self):
         cl = request.content_length
         if cl is not None and cl > self.__size_limit * 1024 * 1024:
             return False
